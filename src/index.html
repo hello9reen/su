@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>SU</title>
+  <style>
+    body, input { font-size: 24px }
+
+    input[type=number] { 
+      text-align: right;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+  </style>
+</head>
+
+<body>
+  <pre>&lt;input type="number"></pre>
+  <input type="number">
+  <pre>&lt;input type="number" data-precision="2"></pre>
+  <input type="number" data-precision="2">
+  <pre>&lt;input type="number" data-precision="2" data-decimal="," data-separator="."></pre>
+  <input type="number" data-precision="2" data-decimal="," data-separator=".">
+</body>
+
+</html>
