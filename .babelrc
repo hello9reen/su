@@ -2,7 +2,7 @@
   "presets": [
     ["@babel/preset-env", { 
       "targets": {
-        "ie": "9"
+        "ie": "8"
       }
     }]
   ]
