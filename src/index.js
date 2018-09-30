@@ -19,7 +19,7 @@ keyContains = (key) => {
 }
 
 const getCode = e => e.which || e.charCode || e.keyCode
-const numberFormat = v => v.replace(/[^\d]/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+const numberFormat = v => (v||'').replace(/[^\d]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
 
 document.querySelectorAll('input[type=number]')
@@ -33,13 +33,12 @@ document.querySelectorAll('input[type=number]')
 
       // number keys 0(48) ~ 9(57)
       // number pads 0(96) ~ 9(105)
-      if ((key >= 48 && key <= 57 && !e.shiftKey)
-       || (key >= 96 && key <= 105)) {
-        // bypass
-      }
       // decimal point(110), priod(190)
-      else if ((key === 110 || key === 190) && el.value.indexOf('.') < 0) {
-        // bypass        
+      if ((key >= 48 && key <= 57 && !e.shiftKey)
+       || (key >= 96 && key <= 105)
+       || ((key === 110 || key === 190))
+      ) {
+        el.beforeValue = el.value
       }
       else if (KEYS.UP === key) {
         el.value = parseInt(el.value || 0) + 1
@@ -55,34 +54,41 @@ document.querySelectorAll('input[type=number]')
 
     el.addEventListener('keyup', e => {
       const key = getCode(e)
+      let cursor = el.selectionStart
 
       // number keys 0(48) ~ 9(57)
       // number pads 0(96) ~ 9(105)
       if ((key >= 48 && key <= 57 && !e.shiftKey)
        || (key >= 96 && key <= 105)) {
-        let cursor = el.selectionStart
-        let add = cursor > 0 &&
-                    el.value.slice(/,/)[0].length === 3
+        const point = el.value.indexOf('.')
 
-        const fraction = el.value.indexOf('.')
-
-        console.log(cursor, fraction, add, el.value)
-
-        if (fraction > -1) {
-          if (fraction < cursor) {
-            add = false
-          }
-
-          el.value = numberFormat(el.value.substring(0, fraction))
-                   + el.value.substring(fraction)
-        }
-        else {
+        if (point === -1) {
           el.value = numberFormat(el.value)
+
+          if (/^\d{3}/.test(el.beforeValue)) cursor++
+        }
+        else if (point > cursor) {
+          const integer = el.value.substring(0, point)
+          const fraction = el.value.substring(point)
+
+          el.value = numberFormat(integer) + '.'
+                   + fraction.replace(/[^\d]/g, '')
+
+          if (/^\d{3}/.test(el.beforeValue)) cursor++
         }
 
-        if (add) {
-          cursur++
-        }
+        el.focus()
+        el.setSelectionRange(cursor, cursor)  
+      }
+      // decimal point(110), priod(190).
+      else if (key === 110 || key === 190) {
+        const integer = el.value.substring(0, cursor)
+        const fraction = el.value.substring(cursor)
+
+        el.value = numberFormat(integer) + '.'
+                 + fraction.replace(/[^\d]/g, '')
+
+        cursor = el.value.indexOf('.') + 1
 
         el.focus()
         el.setSelectionRange(cursor, cursor)
