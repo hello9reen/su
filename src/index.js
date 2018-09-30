@@ -133,8 +133,8 @@ const registry = el => {
   })
 
   el.addEventListener('blur', e => {
-    if (/\.$/.test(el.value)) {
-      el.value = el.value.substring(0, el.value.length - 1)
+    if (/[^\d]+$/.test(el.value)) {
+      el.value = el.value.replace(/[^\d]+$/, '')
     }
   })
 }
