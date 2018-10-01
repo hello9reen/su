@@ -100,7 +100,7 @@ const registry = el => {
           if (/^\-?\d{3}/.test(el.beforeValue)) cursor++
         }
       }
-      else if (point > cursor) {
+      else if (point >= cursor) {
         const integer = el.value.substring(0, point)
         const fraction = el.value.substring(point)
 
