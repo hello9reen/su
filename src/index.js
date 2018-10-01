@@ -140,6 +140,8 @@ const registry = el => {
 }
 
 document.addEventListener('DOMContentLoaded', e => {
-  document.querySelectorAll('input[type=number]:not(.su)')
-  .forEach(registry)
+  var i, inputs = document.querySelectorAll('input[type=number]:not(.su)')
+  for (i = 0; i < inputs.length; i++) {
+    registry(inputs[i])
+  }
 })
