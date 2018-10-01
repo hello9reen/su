@@ -133,8 +133,20 @@ const registry = el => {
   })
 
   el.addEventListener('blur', e => {
-    if (/[^\d]+$/.test(el.value)) {
-      el.value = el.value.replace(/[^\d]+$/, '')
+    const point = el.value.indexOf('.')
+
+    if (point === -1) {
+      el.value = numberFormat(el.value)
+    }
+    else {
+      const integer = el.value.substring(0, point)
+      const fraction = el.value.substring(point + 1)
+
+      el.value = numberFormat(integer)
+
+      if (fraction) {
+        el.value += '.' + fraction.replace(/[^\d]/g, '')
+      }
     }
   })
 }
