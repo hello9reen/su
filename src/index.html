@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>SU</title>
   <style>
-    input { 
+    input {
       display: block;
       font-size: 24px;
       margin-bottom: 20px;
@@ -13,15 +13,15 @@
 </head>
 
 <body>
-  <h1>Type anything</h1>
-  <ol>
-    <li>Accept only number, decimal point, and minus symbol.</li>
-    <li>Display thousand comma(,)</li>
-    <li>But fraction zone is not</li>
-  </ol>
-  <input type="number">
-  <input type="number">
-  <input type="number">
+<h1>Type anything</h1>
+<ol>
+  <li>Accept only number, decimal point, and minus symbol.</li>
+  <li>Display thousand comma(,)</li>
+  <li>But fraction zone is not</li>
+</ol>
+<input data-pattern="USD .0#### $" type="number">
+<input data-pattern="KRW ###,##0.# 원" type="number">
+<input type="number">
 </body>
 
 </html>

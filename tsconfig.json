@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
-    "outFile": "./dist/su.js",
     "target": "es5",
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "strict": true,
+    "module": "esnext",
+    "downlevelIteration": true,
+    "sourceMap": true
   },
   "include": [
     "./src/**/*"
