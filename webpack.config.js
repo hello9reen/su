@@ -8,6 +8,9 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         filename: 'su.js'
     },
+    resolve: {
+        extensions: ['.ts', '.js', '.json']
+    },
     module: {
         rules: [
             {test: /\.tsx?$/, loader: 'ts-loader'}

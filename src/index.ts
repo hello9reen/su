@@ -1,8 +1,11 @@
+import getMetaInfo from './meta'
+
 const ACCEPT_KEYS: readonly string[] = [
+  'Enter',
   'Backspace',
   'Delete',
-  'End',
   'Home',
+  'End',
   'Left',
   'Up',
   'Right',
@@ -15,80 +18,43 @@ const ACCEPT_KEYS: readonly string[] = [
   '-'
 ]
 
-const PRINT_PATTERN: RegExp = /^([^#.0-9]*)([#,.0-9]*)([^#0-9]*)$/
-const DECIMAL_PATTERN: RegExp = /^((#+((#,(#+\d*|\d+))|(\d,\d+))*)|(\d+(,\d+)*))?(\.(\d+#*|#+))?$/
 
+const groupRegExps: GroupRegexps = {}
 
 const accepts = (key: string): boolean => ACCEPT_KEYS.indexOf(key) > -1
 
-const groupRegExps: { [key: number]: RegExp } = {}
+const toNumbers = (text: string): string => text.replace(/[^\d-.]/g, '')
+
 const grouping = (integer: string | number, group: number = 3): string => {
   if (!integer) return ''
   if (!groupRegExps[group])
-    groupRegExps[group] = new RegExp(`\\B(?=(\\d{${group}})+(?!\\d))`)
+    groupRegExps[group] = new RegExp(`\\B(?=(\\d{${group}})+(?!\\d))`, 'g')
 
-  return String(integer)
-    .replace(/[^\d]/g, '')
+  return toNumbers(String(integer))
     .replace(groupRegExps[group], ',')
 }
 
+const fillInteger = (value: string, fill: string) => {
+  if (!value) return fill
+  else if (value.length < fill.length)
+    return fill.substring(0, fill.length - value.length) + value
+
+  return value
+}
+
+const fillFraction = (value: string, fill: string) => {
+  if (!fill && !value) return ''
+  else if (value.length < fill.length)
+    value += fill.substring(value.length)
+
+  return '.' + value
+}
+
+
 const registry = (input: HTMLInputElement): void => {
-  const origin = input.dataset['pattern'] || ''
+  const meta: DecimalMeta = getMetaInfo(input)
 
-  const [, prefix, decimalPattern, suffix] = PRINT_PATTERN.exec(origin)
-
-  console.log(PRINT_PATTERN.exec(origin))
-
-  if (!DECIMAL_PATTERN.test(decimalPattern))
-    throw `illegal numeric pattern "${decimalPattern}"`
-
-  const info = {
-      origin,
-      prefix,
-      suffix,
-      integer: {
-        groups: 0,
-        fill: '',
-        max: 0
-      },
-      fraction: {
-        fill: '',
-        max: 0
-      }
-    },
-    defineInteger = (number: string) => {
-      if (!number) return
-
-      const groupPosition = number.lastIndexOf(',')
-      if (groupPosition > 0) {
-        info.integer.groups = groupPosition
-      }
-
-      const [all, /*mutable*/, immutable] = /^(#*)(\d*)$/.exec(number.replace(/[^#0-9]/g, ''))
-      if (all)
-        info.integer.max = all.length
-
-      if (immutable)
-        info.integer.fill = immutable
-    },
-    defineFaction = (number: string) => {
-      if (!number) return
-
-      const [all, immutable] = /^(\d*)(#*)$/.exec(number.replace(/[^#0-9]/g, ''))
-      if (all)
-        info.fraction.max = all.length
-
-      if (immutable)
-        info.fraction.fill = immutable
-    }
-
-  const [integerPart, fractionPart] = decimalPattern.split('.')
-  defineInteger(integerPart)
-  defineFaction(fractionPart)
-
-  input.setAttribute('data-pattern', JSON.stringify(info))
-
-  input.classList.add('su')
+  input.classList.add('su--dyed')
   input.style.textAlign = 'right'
 
   input.addEventListener(
@@ -97,34 +63,72 @@ const registry = (input: HTMLInputElement): void => {
       const key: string = e.key
       const cursor: number = input.selectionStart as number
 
-      console.log('keydown', key)
+      if (key.charCodeAt(0) > 127) {
+        meta.revert = cursor
+        input.blur()
+        return
+      } else if (/\d/.test(key)) {
+        if (meta.rulable) {
+          const [integer, fraction] = input.value.split('.')
 
-      if (/[0-9.]/.test(key)) {
-        input.setAttribute('data-before', input.value)
-      } else if (/(Arrow)?Up/.test(key)) {
-        input.value = String((Number(input.value) || 0) + 1)
-      } else if (/(Arrow)?Down/.test(key)) {
-        input.value = String((Number(input.value) || 0) - 1)
-      } else if ('Delete' === key) {
+          // 정수값을 입력 할 때
+          if (cursor <= integer.length) {
+            // 정수 패턴의 최대 길이보다 크면 차단
+            if (meta.integer.max <= integer.replace(/^-/, '').length) {
+              e.preventDefault()
+            }
+          }
+          // 소수값을 입력 할 때
+          else {
+            // 소수 패턴의 최대 길이보다 크면 차단
+            if (meta.fraction.max <= fraction.length) {
+              e.preventDefault()
+            }
+          }
+        }
+      } else if ('.' === key) {
+        if (meta.rulable && meta.fraction.max === 0) {
+          e.preventDefault()
+          return
+        }
 
-        if (',' === input.value.substring(cursor, cursor + 1)) {
-          input.focus()
-          input.setSelectionRange(cursor + 1, cursor + 1)
+        const dotIndex = input.value.indexOf('.')
+        if (dotIndex > -1) {
+          e.preventDefault()
+
+          setTimeout(() => {
+            const value = input.value.replace(/\./, '')
+
+            if (cursor > dotIndex) {
+              input.value = value.substring(0, cursor - 1) + '.' + value.substring(cursor - 1)
+              input.setSelectionRange(cursor, cursor)
+            } else {
+              input.value = value.substring(0, cursor) + '.' + value.substring(cursor)
+              input.setSelectionRange(cursor + 1, cursor + 1)
+            }
+          })
         }
-      } else if ('Backspace' === key) {
-        if (',' === input.value.substring(cursor - 1, cursor)) {
-          input.focus()
-          input.setSelectionRange(cursor - 1, cursor - 1)
-        }
+      } else if (/^(Arrow)?(Up|Down)$/.test(key)) {
+        const value = Number(input.value),
+          dotIndex = input.value.indexOf('.')
+
+        input.value = (value + (/Up$/.test(key) ? 1 : -1))
+          .toFixed(dotIndex === -1
+            ? 0
+            : input.value.length - dotIndex - 1)
+
+        setTimeout(() => input.setSelectionRange(cursor, cursor))
       } else if ('-' === key) {
-        if (!/^[-]/.test(input.value)) {
-          input.value = '-' + input.value
+        e.preventDefault()
 
-          input.focus()
+        if (/^-/.test(input.value)) {
+          input.value = input.value.replace(/-/, '')
+          input.setSelectionRange(cursor - 1, cursor - 1)
+        } else {
+          input.value = '-' + input.value
           input.setSelectionRange(cursor + 1, cursor + 1)
         }
 
-        e.preventDefault()
       } else if (!e.ctrlKey && !e.metaKey && !accepts(key)) {
         e.preventDefault()
       }
@@ -132,68 +136,78 @@ const registry = (input: HTMLInputElement): void => {
     false
   )
 
-  input.addEventListener('keyup', (e: KeyboardEvent) => {
-    const key = e.key
-    let cursor = input.selectionStart as number
+  input.addEventListener('focus', () => {
+    setTimeout(() => {
+      let cursor: number = input.selectionStart as number
 
-    if (input.value === input.getAttribute("data-keyup"))
+      cursor -= input.value
+        .substring(meta.prefix.length, cursor)
+        .split(/[^\d.]/)
+        .length - 1
+
+      cursor -= meta.prefix.length
+
+      input.value = toNumbers(input.value)
+
+      if (/^-/.test(input.value)) {
+        cursor++
+      }
+
+      input.setSelectionRange(cursor, cursor)
+    })
+  }, false)
+
+
+  const _focusout = (e: Event) => {
+    if (meta.revert) {
+      e.stopImmediatePropagation()
+      e.stopPropagation()
+      e.preventDefault()
+
+      input.focus()
+
+      setTimeout(() => {
+        if (meta.revert) {
+          input.setSelectionRange(meta.revert, meta.revert)
+          meta.revert = undefined
+        }
+      })
+
       return
-
-    if (key.match(/[0-9]/) || key === 'Delete' || key === 'Backspace') {
-      const point = input.value.indexOf('.')
-
-      if (point === -1) {
-        input.value = grouping(input.value)
-
-        if (key === 'Delete' || key === 'Backspace') {
-          if (/^[-]?\d{3}/.test(<string>input.getAttribute('data-before'))) cursor++
-        }
-      } else if (point >= cursor) {
-        const integer = input.value.substring(0, point)
-        const fraction = input.value.substring(point)
-
-        input.value = grouping(integer) + '.' + fraction.replace(/[^\d]/g, '')
-
-        if ('Delete' === key || 'Backspace' === key) {
-          if (/^[-]?\d{3}/.test(<string>input.getAttribute('data-before'))) cursor++
-        }
-      }
-
-      input.focus()
-      input.setSelectionRange(cursor, cursor)
-    } else if ('.' === key) {
-      const integer = input.value.substring(0, cursor)
-      const fraction = input.value.substring(cursor)
-
-      input.value = grouping(integer) + '.' + fraction.replace(/[^\d]/g, '')
-
-      cursor = input.value.indexOf('.') + 1
-
-      input.focus()
-      input.setSelectionRange(cursor, cursor)
     }
 
-    input.setAttribute('data-keyup', input.value)
-  })
+    const minus = /^-/.test(input.value)
+    const value = input.value.replace(/[^\d.]/g, '')
+    const point = value.indexOf('.')
 
-  input.addEventListener('blur', () => {
-    const point = input.value.indexOf('.')
-
-    if (point === -1) input.value = grouping(input.value)
-    else {
-      const integer = input.value.substring(0, point)
-      const fraction = input.value.substring(point + 1)
-
-      input.value = grouping(integer)
-
-      if (fraction) {
-        input.value += '.' + fraction.replace(/[^\d]/g, '')
-      }
+    if (point === -1) {
+      input.value = fillInteger(grouping(value), meta.integer.fill)
+        + fillFraction('', meta.fraction.fill)
+    } else {
+      input.value = fillInteger(grouping(value.substring(0, point)), meta.integer.fill)
+      input.value += fillFraction(toNumbers(value.substring(point + 1)), meta.fraction.fill)
     }
-  })
+
+    if (minus)
+      input.value = '-' + input.value
+
+    if (input.value) {
+      input.value = meta.prefix + input.value + meta.suffix
+    }
+  }
+
+  input.addEventListener('focusout', _focusout, false)
+  input.addEventListener('change', _focusout, false)
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('input[type=number]:not(.su--dyed)')
-    .forEach(input => registry(<HTMLInputElement>input))
+  const changeEvent = new Event('change')
+
+  document.querySelectorAll('input.su:not(.su--dyed)')
+    .forEach(input => {
+      registry(input as HTMLInputElement)
+
+      if ((input as HTMLInputElement).value)
+        input.dispatchEvent(changeEvent)
+    })
 })
