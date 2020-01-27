@@ -1,8 +1,8 @@
 export {}
 
 declare global {
-  interface DecimalMeta {
-    rulable: boolean
+  interface DecimalMetadata {
+    unlimited: boolean
     prefix: string
     suffix: string
     revert?: number
@@ -15,9 +15,5 @@ declare global {
       fill: string
       max: number
     }
-  }
-
-  interface GroupRegexps {
-    [key: number]: RegExp
   }
 }
