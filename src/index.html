@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>SU</title>
+  <link href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/rainbow.min.css" rel="stylesheet">
   <style>
-    input { 
+    input {
       display: block;
       font-size: 24px;
       margin-bottom: 20px;
@@ -13,25 +14,39 @@
 </head>
 
 <body>
-  <h1>Type anything</h1>
-  <ol>
-    <li>Accept only number, decimal point, and minus symbol.</li>
-    <li>Display thousand comma(,)</li>
-    <li>But fraction zone is not</li>
-  </ol>
-  <input type="number">
-  <input type="number">
-  <input type="number">
-  
-  <code>&lt;input type="text" pattern="\d*"&gt;</code>
-  <input type="text" pattern="\d*">
+<h1>Type anything</h1>
+<ol>
+  <li>Accept only number, decimal point, and minus symbol.</li>
+  <li>Display thousand comma(,)</li>
+  <li>But fraction zone is not</li>
+</ol>
 
-  <code>&lt;input type="text" pattern="[0-9]*"&gt;</code>
-  <input type="text" pattern="[0-9]*">
+<pre><code class="html">&lt;input data-pattern="#,###,##0.0#### $" class="su"></code></pre>
+<label>
+  <input class="su" data-pattern="#,###,##0.0####">
+</label>
+<hr>
 
-  <code>&lt;input type="text" pattern="/^-?\d*(,|\.)?\d*$/"&gt;</code>
-  <input type="text" pattern="/^-?\d*(,|\.)?\d*$/">
 
-  </body>
+<pre><code class="html">&lt;input data-pattern="USD .0#### $" class="su"></code></pre>
+<label>
+  <input class="su" data-pattern="USD .0#### $">
+</label>
+<hr>
 
+<pre><code class="html">&lt;input data-pattern="KRW ###,##0.# 원" class="su"></code></pre>
+<label>
+  <input class="su" data-pattern="KRW ###,##0.# 원">
+</label>
+<hr>
+
+<pre><code class="html">&lt;input class="su"></code></pre>
+<label>
+  <input class="su">
+</label>
+<hr>
+
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad() </script>
+</body>
 </html>
