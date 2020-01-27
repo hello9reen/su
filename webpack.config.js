@@ -1,6 +1,6 @@
+/* eslint-disable */
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const webpack = require('webpack')
 
 module.exports = {
     entry: './src/index.ts',
@@ -19,8 +19,8 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './src/index.html',
-            filename: './index.html'
+            template: './index.html',
+            filename: 'index.html'
         })
     ],
     devtool: 'source-map'
