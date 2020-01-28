@@ -12,8 +12,10 @@
     "@typescript-eslint"
   ],
   "rules": {
-    "semi": "off",
     "indent": "off",
+    "quotes": ["warn", "single"],
+    "semi": ["warn", "never"],
+    "no-unused-vars": "warn",
     "@typescript-eslint/indent": [
       "warn",
       2
