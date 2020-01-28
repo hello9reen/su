@@ -1,176 +1,54 @@
-const ACCEPT_KEYS: readonly string[] = [
-  'Backspace',
-  'Delete',
-  'End',
-  'Home',
-  'Left',
-  'Up',
-  'Right',
-  'Down',
-  'ArrowLeft',
-  'ArrowUp',
-  'ArrowRight',
-  'ArrowDown',
-  'Tab',
-  '-'
-]
+import metadata from './metadata'
+import keydown from "./events/keydown";
+import focus from "./events/focus";
+import formatting from "./events/formatting";
 
-const PRINT_PATTERN: RegExp = /^([^#0-9]*)([#,0-9]*)([^#0-9]*)$/
-const DECIMAL_PATTERN: RegExp = /^((#+((#,(#+\d*|\d+))|(\d,\d+))*)|(\d+(,\d+)*))(\.(\d+#*|#+))?$/
+document.addEventListener('DOMContentLoaded', () => {
+  const changeEvent = new Event('change')
 
+  // <input class="su" ...> 들을 찾는데,
+  // 이미 적용된(su--dyed) 건 제외하고 찾아요.
+  document.querySelectorAll('input.su:not(.su--dyed)')
+    .forEach(element => {
+      const input = element as HTMLInputElement;
 
-const accepts = (key: string): boolean => ACCEPT_KEYS.indexOf(key) > -1
+      register(input, metadata(element))
 
-const numberFormat = (value: string | number): string => {
-  if (!value) return ''
+      // 초기에 값이 할당된 경우, change 이벤트를 호출해서
+      // 값을 정의된 패턴에 맞게 formatting 해줘요.
+      if (input.value)
+        element.dispatchEvent(changeEvent)
+    })
+})
 
-  return String(value)
-    .replace(/[^\d]/g, '')
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-const registry = (input: HTMLInputElement): void => {
-  const pattern = {
-    origin: input.dataset['pattern'] || '',
-    groups: null as RegExp,
-    integer: {
-      fill: '',
-      max: 0
-    },
-    fraction: {
-      fill: '',
-      max: 0
-    }
-  }
-
-  const [integer, fraction] = pattern.origin.split('.')
-
-  const groupPosition = integer.lastIndexOf(',')
-  if (groupPosition > 0)
-    pattern.groups = new RegExp(`\\B(?=(\\d{$(integer.length - groupPosition) + '})+(?!\\d))`)
-
-  const [all, /*mutable*/, immutable] = /^(#*)(0*)$/.exec(integer.replace(/[^#0]/g, ''))
-  if (all)
-    pattern.integer.max = all.length
-
-  if (immutable)
-    pattern.integer.fill = immutable
-
-
-  if (!pattern) input.setAttribute('data-pattern', '#,##0')
-  else {
-    // TODO
-  }
-
-  input.classList.add('su')
-  input.style.textAlign = 'right'
-
+const register = (input: HTMLInputElement, meta: DecimalMetadata): void => {
   input.addEventListener(
     'keydown',
-    (e: KeyboardEvent) => {
-      const key: string = e.key
-      console.log('keydown', key)
-
-      if (/[0-9.]/.test(key)) {
-        input.setAttribute('data-before', input.value)
-      } else if (/(Arrow)?Up/.test(key)) {
-        input.value = String((Number(input.value) || 0) + 1)
-      } else if (/(Arrow)?Down/.test(key)) {
-        input.value = String((Number(input.value) || 0) - 1)
-      } else if ('Delete' === key) {
-        const cursor = input.selectionStart
-
-        if (',' === input.value.substring(cursor, cursor + 1)) {
-          input.focus()
-          input.setSelectionRange(cursor + 1, cursor + 1)
-        }
-      } else if ('Backspace' === key) {
-        const cursor = input.selectionStart
-
-        if (',' === input.value.substring(cursor - 1, cursor)) {
-          input.focus()
-          input.setSelectionRange(cursor - 1, cursor - 1)
-        }
-      } else if ('-' === key) {
-        if (!/^[-]/.test(input.value)) {
-          const cursor = input.selectionStart
-
-          input.value = '-' + input.value
-
-          input.focus()
-          input.setSelectionRange(cursor + 1, cursor + 1)
-        }
-
-        e.preventDefault()
-      } else if (!e.ctrlKey && !e.metaKey && !accepts(key)) {
-        e.preventDefault()
-      }
-    },
+    (e: KeyboardEvent) => keydown(e, input, meta),
     false
   )
 
-  input.addEventListener('keyup', (e: KeyboardEvent) => {
-    const key = e.key
-    let cursor = input.selectionStart
+  input.addEventListener(
+    'focus',
+    () => focus(input, meta),
+    false)
 
-    if (input.value === input.getAttribute("data-keyup"))
-      return
+  input.addEventListener(
+    'focusout',
+    (e: Event) => formatting(e, input, meta),
+    false)
 
-    if (key.match(/[0-9]/) || key === 'Delete' || key === 'Backspace') {
-      const point = input.value.indexOf('.')
+  input.addEventListener(
+    'change',
+    (e: Event) => formatting(e, input, meta),
+    false)
 
-      if (point === -1) {
-        input.value = numberFormat(input.value)
+  // 적용된 형태로 명시하고, 숫자를 위한 정렬 스타일을 적용해요.
+  input.classList.add('su--dyed')
+  input.style.textAlign = 'right'
 
-        if (key === 'Delete' || key === 'Backspace') {
-          if (/^[-]?\d{3}/.test(input.getAttribute('data-before'))) cursor++
-        }
-      } else if (point >= cursor) {
-        const integer = input.value.substring(0, point)
-        const fraction = input.value.substring(point)
-
-        input.value = numberFormat(integer) + '.' + fraction.replace(/[^\d]/g, '')
-
-        if ('Delete' === key || 'Backspace' === key) {
-          if (/^[-]?\d{3}/.test(input.getAttribute('data-before'))) cursor++
-        }
-      }
-
-      input.focus()
-      input.setSelectionRange(cursor, cursor)
-    } else if ('.' === key) {
-      const integer = input.value.substring(0, cursor)
-      const fraction = input.value.substring(cursor)
-
-      input.value = numberFormat(integer) + '.' + fraction.replace(/[^\d]/g, '')
-
-      cursor = input.value.indexOf('.') + 1
-
-      input.focus()
-      input.setSelectionRange(cursor, cursor)
-    }
-
-    input.setAttribute('data-keyup', input.value)
-  })
-
-  input.addEventListener('blur', () => {
-    const point = input.value.indexOf('.')
-
-    if (point === -1) input.value = numberFormat(input.value)
-    else {
-      const integer = input.value.substring(0, point)
-      const fraction = input.value.substring(point + 1)
-
-      input.value = numberFormat(integer)
-
-      if (fraction) {
-        input.value += '.' + fraction.replace(/[^\d]/g, '')
-      }
-    }
-  })
+  // <input type=number...> 의 경우,
+  // setSelectionRange 함수등이 동작하지 않아요.
+  if (input.getAttribute('type') === 'number')
+    input.setAttribute('type', 'text')
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('input.su[type=number]:not(.su--dyed)')
-    .forEach(registry)
-})

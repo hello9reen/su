@@ -1,10 +1,25 @@
 {
   "compilerOptions": {
-    "outFile": "./dist/su.js",
     "target": "es5",
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "lib": [
+      "es6",
+      "esnext",
+      "dom"
+    ],
+    "strict": true,
+    "module": "es6",
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "sourceMap": true,
+    "typeRoots": [
+      "./@types",
+      "./node_modules/@types"
+    ],
+    "outDir": "dist"
   },
   "include": [
-    "./src/**/*"
+    "./src/**.ts",
+    "./@types/*.ts"
   ]
 }

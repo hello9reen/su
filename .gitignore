@@ -1,4 +1,4 @@
-dist
 node_modules
 .firebase
+.vscode
 .idea
