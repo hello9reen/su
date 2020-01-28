@@ -1,25 +1,8 @@
-import {fillFraction, fillInteger, grouping, toNumber} from "../utils";
+import {fillFraction, fillInteger, grouping, toNumber} from '../utils'
 
 const isMinus = (value: string): boolean => /^-/.test(value)
 
 export default (e: Event, input: HTMLInputElement, meta: DecimalMetadata) => {
-  if (meta.revert) {
-    e.stopImmediatePropagation()
-    e.stopPropagation()
-    e.preventDefault()
-
-    input.focus()
-
-    setTimeout(() => {
-      if (meta.revert) {
-        input.setSelectionRange(meta.revert, meta.revert)
-        meta.revert = undefined
-      }
-    })
-
-    return
-  }
-
   if (!input.value) return
 
   const minus = isMinus(input.value)

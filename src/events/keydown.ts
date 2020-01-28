@@ -4,14 +4,10 @@ const ACCEPT_KEYS: readonly string[] = [
   'Delete',
   'Home',
   'End',
-  'Left',
-  'Up',
-  'Right',
-  'Down',
   'ArrowLeft',
-  'ArrowUp',
+  'Left',
   'ArrowRight',
-  'ArrowDown',
+  'Right',
   'Tab',
   '-'
 ]
@@ -22,11 +18,7 @@ export default (e: KeyboardEvent, input: HTMLInputElement, meta: DecimalMetadata
   const key: string = e.key
   const cursor: number = input.selectionStart as number
 
-  if (key.charCodeAt(0) > 127) {
-    meta.revert = cursor
-    input.blur()
-    return
-  } else if (/\d/.test(key)) {
+  if (/\d/.test(key)) {
     if (!meta.unlimited) {
       const [integer, fraction] = input.value.split('.')
 
@@ -87,8 +79,21 @@ export default (e: KeyboardEvent, input: HTMLInputElement, meta: DecimalMetadata
       input.value = '-' + input.value
       input.setSelectionRange(cursor + 1, cursor + 1)
     }
+  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && !accepts(key)) {
+    const fired = () => {
+      input.value = input.value.replace(/[^\d-.]/g, '')
+      input.removeEventListener('keyup', fired)
 
-  } else if (!e.ctrlKey && !e.metaKey && !accepts(key)) {
-    e.preventDefault()
+      setTimeout(() => {
+        const cursor = meta.cursor || 0
+        input.setSelectionRange(cursor, cursor)
+        input.readOnly = false
+      })
+    }
+
+    meta.cursor = cursor
+
+    input.addEventListener('keyup', fired)
+    input.readOnly = true
   }
 }

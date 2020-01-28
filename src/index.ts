@@ -32,6 +32,34 @@ const register = (input: HTMLInputElement, meta: DecimalMetadata): void => {
     false
   )
 
+  //
+  // input.addEventListener(
+  //   'keydown',
+  //   (e: KeyboardEvent) => {
+  //     console.log('keydown', e.key, input.value)
+  //     input.readOnly = true
+  //     e.preventDefault()
+  //   },
+  //   false)
+  //
+  // input.addEventListener(
+  //   'keypress',
+  //   (e: KeyboardEvent) => {
+  //     console.log('keypress', e.key, input.value)
+  //     input.readOnly = false
+  //     e.preventDefault()
+  //   },
+  //   false)
+  //
+  // input.addEventListener(
+  //   'keyup',
+  //   (e: KeyboardEvent) => {
+  //     console.log('keyup', e.key, input.value)
+  //     input.readOnly = false
+  //   },
+  //   false)
+
+
   input.addEventListener(
     'focus',
     () => focus(input, meta),
@@ -39,11 +67,6 @@ const register = (input: HTMLInputElement, meta: DecimalMetadata): void => {
 
   input.addEventListener(
     'focusout',
-    (e: Event) => formatting(e, input, meta),
-    false)
-
-  input.addEventListener(
-    'change',
     (e: Event) => formatting(e, input, meta),
     false)
 

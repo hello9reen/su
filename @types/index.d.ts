@@ -5,7 +5,7 @@ declare global {
     unlimited: boolean
     prefix: string
     suffix: string
-    revert?: number
+    cursor?: number
     integer: {
       groups: number
       fill: string
