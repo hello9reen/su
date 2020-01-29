@@ -4,7 +4,6 @@ declare global {
   interface DecimalMetadata {
     prefix: string
     suffix: string
-    cursor?: number
     integer: {
       groups: number
       fill: string

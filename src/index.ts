@@ -1,7 +1,7 @@
 import metadata from './metadata'
 import keydown from './events/keydown'
 import focus from './events/focus'
-import formatting from './events/formatting'
+import formatting from './formatting'
 
 import './custom-event-for-ie11'
 
@@ -32,34 +32,6 @@ const register = (input: HTMLInputElement, meta: DecimalMetadata): void => {
     false
   )
 
-  //
-  // input.addEventListener(
-  //   'keydown',
-  //   (e: KeyboardEvent) => {
-  //     console.log('keydown', e.key, input.value)
-  //     input.readOnly = true
-  //     e.preventDefault()
-  //   },
-  //   false)
-  //
-  // input.addEventListener(
-  //   'keypress',
-  //   (e: KeyboardEvent) => {
-  //     console.log('keypress', e.key, input.value)
-  //     input.readOnly = false
-  //     e.preventDefault()
-  //   },
-  //   false)
-  //
-  // input.addEventListener(
-  //   'keyup',
-  //   (e: KeyboardEvent) => {
-  //     console.log('keyup', e.key, input.value)
-  //     input.readOnly = false
-  //   },
-  //   false)
-
-
   input.addEventListener(
     'focus',
     () => focus(input, meta),
@@ -73,6 +45,7 @@ const register = (input: HTMLInputElement, meta: DecimalMetadata): void => {
   // 적용된 형태로 명시하고, 숫자를 위한 정렬 스타일을 적용해요.
   input.classList.add('su--dyed')
   input.style.textAlign = 'right'
+  input.style.imeMode = 'disabled'
 
   // <input type=number...> 의 경우,
   // setSelectionRange 함수등이 동작하지 않아요.

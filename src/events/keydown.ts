@@ -2,6 +2,7 @@ const ACCEPT_KEYS: readonly string[] = [
   'Enter',
   'Backspace',
   'Delete',
+  'Shift',
   'Home',
   'End',
   'ArrowLeft',
@@ -82,20 +83,19 @@ export default (e: KeyboardEvent, input: HTMLInputElement, meta: DecimalMetadata
       input.setSelectionRange(cursor + 1, cursor + 1)
     }
   } else if (!e.ctrlKey && !e.metaKey && !e.altKey && !accepts(key)) {
-    const fired = () => {
-      input.value = input.value.replace(/[^\d-.]/g, '')
-      input.removeEventListener('keyup', fired)
+    e.preventDefault()
 
-      setTimeout(() => {
-        const cursor = meta.cursor || 0
+    if (key.charCodeAt(0) > 127) {
+      const cachedInputValue = input.value
+      const fired = (e: Event) => {
+        e.preventDefault()
+
+        input.value = cachedInputValue
         input.setSelectionRange(cursor, cursor)
-        input.readOnly = false
-      })
+        input.removeEventListener('input', fired)
+      }
+
+      input.addEventListener('input', fired)
     }
-
-    meta.cursor = cursor
-
-    input.addEventListener('keyup', fired)
-    input.readOnly = true
   }
 }
