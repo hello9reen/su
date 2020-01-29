@@ -1,30 +1,36 @@
 const PRINT_PATTERN: RegExp = /^([^#.0-9]*)([#,.0-9]*)([^#0-9]*)$/
 const DECIMAL_PATTERN: RegExp = /^((?:#*(?:,#+)*)\d*(?:,\d+)*)?(\.(?:\d+#*|#+))?$/
 
-const defineInteger = (number: string, info: DecimalMetadata): void => {
-  if (!number) return
-
-  const groupPosition = number.lastIndexOf(',')
-  if (groupPosition > 0) {
-    info.integer.groups = groupPosition
+const defineInteger = (pattern: string, meta: DecimalMetadata): void => {
+  if (!pattern) {
+    meta.integer.max = 0
+    return
   }
 
-  const [all, /*mutable*/, immutable] = /^(#*)(\d*)$/.exec(number.replace(/[^#0-9]/g, ''))
-  if (all)
-    info.integer.max = all.length
+  const groupSize = pattern.lastIndexOf(',')
+  meta.integer.groups = groupSize === -1 ? 0 : pattern.length - groupSize - 1
 
-  if (immutable)
-    info.integer.fill = immutable
+  const [all, fill] = /^(?:#*)(\d*)$/.exec(pattern.replace(/[^#\d]/g, ''))
+
+  if (all)
+    meta.integer.max = all.length
+
+  if (fill)
+    meta.integer.fill = fill
 }
-const defineFaction = (number: string, info: DecimalMetadata): void => {
-  if (!number) return
+const defineFaction = (pattern: string, meta: DecimalMetadata): void => {
+  if (!pattern) {
+    meta.fraction.max = 0
+    return
+  }
 
-  const [all, immutable] = /^(\d*)(#*)$/.exec(number.replace(/[^#0-9]/g, ''))
+  const [all, fill] = /^(\d*)(?:#*)$/.exec(pattern.replace(/[^#0-9]/g, ''))
+
   if (all)
-    info.fraction.max = all.length
+    meta.fraction.max = all.length
 
-  if (immutable)
-    info.fraction.fill = immutable
+  if (fill)
+    meta.fraction.fill = fill
 }
 
 export default (input: Element) => {
@@ -36,23 +42,24 @@ export default (input: Element) => {
     throw `illegal numeric pattern "${decimalPattern}"`
 
   const meta: DecimalMetadata = {
-    unlimited: !pattern,
     prefix,
     suffix,
     integer: {
-      groups: 0,
+      groups: 3,
       fill: '',
-      max: 0
+      max: Infinity
     },
     fraction: {
       fill: '',
-      max: 0
+      max: Infinity
     }
   }
 
-  const [integerPart, fractionPart] = decimalPattern.split('.')
-  defineInteger(integerPart, meta)
-  defineFaction(fractionPart, meta)
+  if (pattern) {
+    const [integerPart, fractionPart] = decimalPattern.split('.')
+    defineInteger(integerPart, meta)
+    defineFaction(fractionPart, meta)
+  }
 
   return meta
 }

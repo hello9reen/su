@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     register(input, metadata(input))
 
     // 초기에 값이 할당된 경우, change 이벤트를 호출해서
-    // 값을 정의된 패턴에 맞게 formatting 해줘요.
+    // 정의된 패턴에 맞게 값을 formatting 해줘요.
     if (input.value)
       input.dispatchEvent(changeEvent)
   }

@@ -19,26 +19,28 @@ export default (e: KeyboardEvent, input: HTMLInputElement, meta: DecimalMetadata
   const cursor: number = input.selectionStart as number
 
   if (/\d/.test(key)) {
-    if (!meta.unlimited) {
-      const [integer, fraction] = input.value.split('.')
+    const [integer, fraction] = input.value.split('.')
 
-      // 정수값을 입력 할 때
-      if (cursor <= integer.length) {
-        // 정수 패턴의 최대 길이보다 크면 차단
-        if (meta.integer.max <= integer.replace(/^-/, '').length) {
-          e.preventDefault()
-        }
+    // 정수값을 입력 할 때
+    if (cursor <= integer.length) {
+      // 정수 패턴의 최대 길이보다 크면 차단
+      if (meta.integer.max <= integer.replace(/^-/, '').length) {
+        e.preventDefault()
+        return
       }
-      // 소수값을 입력 할 때
-      else {
-        // 소수 패턴의 최대 길이보다 크면 차단
-        if (meta.fraction.max <= fraction.length) {
-          e.preventDefault()
-        }
+    }
+    // 소수값을 입력 할 때
+    else {
+      // 소수 패턴의 최대 길이보다 크면 차단
+      if (meta.fraction.max <= fraction.length) {
+        e.preventDefault()
+        return
       }
     }
   } else if ('.' === key) {
-    if (!meta.unlimited && meta.fraction.max === 0) {
+    // pattern 을 정의하지 않아서 무한대로 입력 가능하거나,
+    // 소수에 대해 정의가 없는 경우는 입력을 차단해요.
+    if (meta.fraction.max === 0) {
       e.preventDefault()
       return
     }
