@@ -1,17 +1,20 @@
 export {}
 
 declare global {
-  interface DecimalMetadata {
-    prefix: string
-    suffix: string
+  interface Su {
+    origin: string
+    groups: number
     integer: {
-      groups: number
       fill: string
       max: number
-    },
+    }
     fraction: {
       fill: string
       max: number
     }
+  }
+
+  interface Window {
+    CustomEvent: CustomEvent
   }
 }
